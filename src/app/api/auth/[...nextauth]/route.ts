@@ -2,7 +2,7 @@ import NextAuth, { type AuthOptions } from "next-auth";
 import Credentials from "next-auth/providers/credentials";
 import prisma from "@/lib/prisma";
 
-export const authOptions = {
+export const authOptions: AuthOptions = {
   session: {
     strategy: "jwt",
   },
@@ -14,12 +14,11 @@ export const authOptions = {
         username: { label: "Username", type: "text" },
         password: { label: "Password", type: "password" },
       },
-
       async authorize(credentials) {
         console.log("🔐 Auth attempt started");
-        console.log("📝 Credentials received:", { 
-          username: credentials?.username, 
-          hasPassword: !!credentials?.password 
+        console.log("📝 Credentials received:", {
+          username: credentials?.username,
+          hasPassword: !!credentials?.password,
         });
 
         if (!credentials?.username || !credentials?.password) {
@@ -35,29 +34,23 @@ export const authOptions = {
           console.log("👤 User lookup result:", {
             found: !!user,
             username: user?.username,
-            hasPassword: !!user?.password
+            role: user?.role,
           });
 
-          if (!user) {
-            console.log("❌ User not found");
-            return null;
-          }
+          if (!user) return null;
 
           const isValid = credentials.password === user.password;
 
-          console.log("🔑 Password validation:", isValid);
-
-          if (!isValid) {
-            console.log("❌ Invalid password");
-            return null;
-          }
+          if (!isValid) return null;
 
           console.log("✅ Authentication successful");
-          // Return the complete user object
+
+          // Return full user object including role
           return {
             id: user.id,
             name: user.name || user.username,
             username: user.username,
+            role: user.role,
           };
         } catch (error) {
           console.error("💥 Auth error:", error);
@@ -69,26 +62,34 @@ export const authOptions = {
 
   callbacks: {
     async jwt({ token, user }) {
-      // Add username to the token on sign in
       if (user) {
         token.username = user.username;
+        token.role = user.role;
       }
       return token;
     },
+
     async session({ session, token }) {
-      // Add username to the session
       if (session.user) {
-        session.user.username = token.username as string;
+        session.user.username = token.username;
+        session.user.role = token.role as "USER" | "ADMIN" | undefined;
       }
       return session;
+    },
+
+    async signIn({ user }) {
+      // Redirect admin users after login
+      if (user.role === "ADMIN") {
+        return "/admin-dashboard";
+      }
+      return true; // default behavior for other users
     },
   },
 
   pages: {
     signIn: "/login",
   },
-} satisfies AuthOptions;
+};
 
 const handler = NextAuth(authOptions);
-
 export { handler as GET, handler as POST };
