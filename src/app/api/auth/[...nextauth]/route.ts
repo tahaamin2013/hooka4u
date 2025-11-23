@@ -1,95 +1,88 @@
-import NextAuth, { type AuthOptions } from "next-auth";
-import Credentials from "next-auth/providers/credentials";
-import prisma from "@/lib/prisma";
+import { PrismaClient } from "@prisma/client"
+import type { NextAuthOptions } from "next-auth"
+import NextAuth from "next-auth/next"
+import CredentialsProvider from "next-auth/providers/credentials"
 
-export const authOptions: AuthOptions = {
-  session: {
-    strategy: "jwt",
-  },
+const prisma = new PrismaClient()
 
+export const authOptions: NextAuthOptions = {
   providers: [
-    Credentials({
-      name: "Credentials",
+    CredentialsProvider({
+      name: "credentials",
       credentials: {
         username: { label: "Username", type: "text" },
         password: { label: "Password", type: "password" },
       },
       async authorize(credentials) {
-        console.log("🔐 Auth attempt started");
-        console.log("📝 Credentials received:", {
-          username: credentials?.username,
-          hasPassword: !!credentials?.password,
-        });
-
         if (!credentials?.username || !credentials?.password) {
-          console.log("❌ Missing credentials");
-          return null;
+          throw new Error("Invalid credentials")
         }
 
-        try {
-          const user = await prisma.user.findUnique({
-            where: { username: credentials.username },
-          });
+        // Find user by username
+        const user = await prisma.user.findUnique({
+          where: { username: credentials.username },
+        })
 
-          console.log("👤 User lookup result:", {
-            found: !!user,
-            username: user?.username,
-            role: user?.role,
-          });
+        // Check plain-text password
+        if (!user || user.password !== credentials.password) {
+          throw new Error("Invalid credentials")
+        }
 
-          if (!user) return null;
-
-          const isValid = credentials.password === user.password;
-
-          if (!isValid) return null;
-
-          console.log("✅ Authentication successful");
-
-          // Return full user object including role
-          return {
-            id: user.id,
-            name: user.name || user.username,
-            username: user.username,
-            role: user.role,
-          };
-        } catch (error) {
-          console.error("💥 Auth error:", error);
-          return null;
+        // Return user info, including role
+        return {
+          id: user.id,
+          name: user.name,
+          username: user.username,
+          role: user.role,
         }
       },
     }),
   ],
-
-  callbacks: {
-    async jwt({ token, user }) {
-      if (user) {
-        token.username = user.username;
-        token.role = user.role;
-      }
-      return token;
-    },
-
-    async session({ session, token }) {
-      if (session.user) {
-        session.user.username = token.username;
-        session.user.role = token.role as "USER" | "ADMIN" | undefined;
-      }
-      return session;
-    },
-
-    async signIn({ user }) {
-      // Redirect admin users after login
-      if (user.role === "ADMIN") {
-        return "/admin-dashboard";
-      }
-      return true; // default behavior for other users
-    },
+  session: {
+    strategy: "jwt",
   },
-
   pages: {
     signIn: "/login",
   },
-};
+  callbacks: {
+    async jwt({ token, user }) {
+      if (user) {
+        token.id = user.id
+        token.username = user.username
+        token.role = user.role
+      }
+      return token
+    },
+    async session({ session, token }) {
+      if (session.user) {
+        session.user.id = token.id as string
+        session.user.username = token.username as string
+        session.user.role = token.role as string
+      }
+      return session
+    },
+  },
+}
 
-const handler = NextAuth(authOptions);
-export { handler as GET, handler as POST };
+declare module "next-auth" {
+  interface Session {
+    user: {
+      id: string
+      name?: string | null
+      username?: string | null
+      role?: string | null
+      image?: string | null
+    }
+  }
+}
+
+declare module "next-auth/jwt" {
+  interface JWT {
+    id: string
+    username?: string | null
+    role?: string | null
+  }
+}
+
+const handler = NextAuth(authOptions)
+export { handler as GET, handler as POST }
