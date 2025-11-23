@@ -6,15 +6,15 @@ export default function LoginPage() {
   return (
     <div className="grid min-h-svh lg:grid-cols-2">
       <div className="flex flex-col gap-4 p-6 md:p-10">
+        <Link href="/login" className="flex items-center gap-2 font-medium">
+          <div className="bg-primary text-primary-foreground flex size-6 items-center justify-center rounded-md flex-col">
+            <GalleryVerticalEnd className="size-4" />
+          </div>
+          <b>Hooka4u</b>
+        </Link>
+
         {/* Login form */}
         <div className="flex flex-col flex-1 items-center justify-center">
-          <a href="#" className="flex items-center gap-2 font-medium">
-            <div className="bg-primary text-primary-foreground flex size-6 items-center justify-center rounded-md flex-col">
-              <GalleryVerticalEnd className="size-4" />
-            </div>
-            <b>Hooka4u</b>
-          </a>
-
           <div className="w-full max-w-xs">
             <LoginForm />
             <div className="mt-4 text-center text-sm text-zinc-500">
