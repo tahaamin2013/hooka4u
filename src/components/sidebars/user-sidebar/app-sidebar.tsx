@@ -1,23 +1,21 @@
 "use client"
 
-import * as React from "react"
 import {
-  AudioWaveform,
   BookOpen,
   Bot,
-  Command,
   Frame,
   GalleryVerticalEnd,
   Map,
+  MenuSquare,
   PieChart,
-  Settings2,
-  SquareTerminal,
+  Settings2
 } from "lucide-react"
+import * as React from "react"
 
-import { NavMain } from "@/components/admin-sidebar/nav-main"
-import { NavProjects } from "@/components/admin-sidebar/nav-projects"
-import { NavUser } from "@/components/admin-sidebar/nav-user"
-import { TeamSwitcher } from "@/components/admin-sidebar/team-switcher"
+import { NavMain } from "@/components/sidebars/user-sidebar/nav-main"
+import { NavProjects } from "@/components/sidebars/user-sidebar/nav-projects"
+import { NavUser } from "@/components/sidebars/user-sidebar/nav-user"
+import { TeamSwitcher } from "@/components/sidebars/user-sidebar/team-switcher"
 import {
   Sidebar,
   SidebarContent,
@@ -26,48 +24,40 @@ import {
   SidebarRail,
 } from "@/components/ui/sidebar"
 
-// This is sample data.
 const data = {
   user: {
     name: "shadcn",
     email: "m@example.com",
     avatar: "/avatars/shadcn.jpg",
   },
-  teams: [
+  teams: 
     {
-      name: "Acme Inc",
+      name: "Hooka4u",
       logo: GalleryVerticalEnd,
       plan: "Enterprise",
     },
-    {
-      name: "Acme Corp.",
-      logo: AudioWaveform,
-      plan: "Startup",
-    },
-    {
-      name: "Evil Corp.",
-      logo: Command,
-      plan: "Free",
-    },
-  ],
   navMain: [
     {
-      title: "Playground",
+      title: "Order Taking",
       url: "#",
-      icon: SquareTerminal,
+      icon: MenuSquare,
       isActive: true,
       items: [
         {
-          title: "History",
-          url: "#",
+          title: "New Order",
+          url: "/new-order",
         },
         {
-          title: "Starred",
-          url: "#",
+          title: "Edit Order",
+          url: "/edit-order",
         },
         {
-          title: "Settings",
-          url: "#",
+          title: "Delete Orders",
+          url: "/delete-orders",
+        },
+        {
+          title: "All Orders",
+          url: "/all-orders",
         },
       ],
     },
@@ -160,7 +150,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   return (
     <Sidebar collapsible="icon" {...props}>
       <SidebarHeader>
-        <TeamSwitcher teams={data.teams} />
+        <TeamSwitcher team={data.teams} />
       </SidebarHeader>
       <SidebarContent>
         <NavMain items={data.navMain} />
