@@ -30,3 +30,13 @@ model VerificationToken {
 
   @@unique([identifier, token])
 }
+
+model MenuItems {
+  id          String   @id @default(uuid()) @map("_id")
+  name        String
+  description String?
+  price       Float
+  image       String?  // URL or path to the image
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}

@@ -45,19 +45,19 @@ const data = {
       items: [
         {
           title: "New Order",
-          url: "/new-order",
+          url: "/user-dashboard/new-order",
         },
         {
           title: "Edit Order",
-          url: "/edit-order",
+          url: "/user-dashboard/edit-order",
         },
         {
           title: "Delete Orders",
-          url: "/delete-orders",
+          url: "/user-dashboard/delete-orders",
         },
         {
           title: "All Orders",
-          url: "/all-orders",
+          url: "/user-dashboard/all-orders",
         },
       ],
     },
