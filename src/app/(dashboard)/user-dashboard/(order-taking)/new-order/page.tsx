@@ -1,7 +1,7 @@
 "use client"
 
-import { useState } from "react"
-import { Plus, Minus, ShoppingCart, Search, X } from "lucide-react"
+import { useState, useEffect } from "react"
+import { Plus, Minus, ShoppingCart, Search, X, Loader2 } from "lucide-react"
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -18,10 +18,10 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 
 interface Product {
-  id: number
+  id: string
   name: string
   price: number
-  category: string
+  description?: string
 }
 
 interface CartItem extends Product {
@@ -29,30 +29,46 @@ interface CartItem extends Product {
 }
 
 interface CartState {
-  [key: number]: CartItem
+  [key: string]: CartItem
 }
 
 export default function NewOrder() {
   const [customerName, setCustomerName] = useState("")
   const [searchQuery, setSearchQuery] = useState("")
   const [cart, setCart] = useState<CartState>({})
+  const [products, setProducts] = useState<Product[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
-  const products: Product[] = [
-    { id: 1, name: "Espresso", price: 3.5, category: "Coffee" },
-    { id: 2, name: "Cappuccino", price: 4.5, category: "Coffee" },
-    { id: 3, name: "Latte", price: 4.75, category: "Coffee" },
-    { id: 4, name: "Americano", price: 3.75, category: "Coffee" },
-    { id: 5, name: "Mocha", price: 5.0, category: "Coffee" },
-    { id: 6, name: "Green Tea", price: 3.0, category: "Tea" },
-    { id: 7, name: "Black Tea", price: 2.75, category: "Tea" },
-    { id: 8, name: "Chai Latte", price: 4.25, category: "Tea" },
-    { id: 9, name: "Croissant", price: 3.5, category: "Bakery" },
-    { id: 10, name: "Muffin", price: 3.25, category: "Bakery" },
-    { id: 11, name: "Bagel", price: 2.5, category: "Bakery" },
-    { id: 12, name: "Sandwich", price: 7.5, category: "Food" },
-  ]
+  // Fetch products from database
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        setLoading(true)
+        const response = await fetch('/api/menu-items')
+        
+        if (!response.ok) {
+          throw new Error('Failed to fetch menu items')
+        }
+        
+        const json = await response.json()
+        const data: Product[] = Array.isArray(json) ? (json as Product[]) : []
+        setProducts(data)
+        setError(null)
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Failed to load products')
+        console.error('Error fetching products:', err)
+      } finally {
+        setLoading(false)
+      }
+    }
 
-  const filteredProducts = products.filter((product) => product.name.toLowerCase().includes(searchQuery.toLowerCase()))
+    fetchProducts()
+  }, [])
+
+  const filteredProducts = products.filter((product) => 
+    product.name.toLowerCase().includes(searchQuery.toLowerCase())
+  )
 
   const addToCart = (product: Product) => {
     setCart((prev) => ({
@@ -64,7 +80,7 @@ export default function NewOrder() {
     }))
   }
 
-  const updateQuantity = (productId: number, change: number) => {
+  const updateQuantity = (productId: string, change: number) => {
     setCart((prev) => {
       const currentQty = prev[productId]?.quantity || 0
       const newQty = currentQty + change
@@ -84,7 +100,7 @@ export default function NewOrder() {
     })
   }
 
-  const removeFromCart = (productId: number) => {
+  const removeFromCart = (productId: string) => {
     setCart((prev) => {
       const { [productId]: removed, ...rest } = prev
       return rest
@@ -102,8 +118,6 @@ export default function NewOrder() {
 
   const cartItems = Object.values(cart)
   const subtotal = cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0)
-  const tax = subtotal * 0.1
-  const total = subtotal + tax
   const totalItems = cartItems.reduce((sum, item) => sum + item.quantity, 0)
 
   return (
@@ -153,39 +167,68 @@ export default function NewOrder() {
           </div>
 
           <div className="flex-1 overflow-y-auto p-6">
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-              {filteredProducts.map((product) => {
-                const inCart = cart[product.id]
-                const isSelected = inCart && inCart.quantity > 0
+            {loading ? (
+              <div className="flex flex-col items-center justify-center h-full">
+                <Loader2 className="w-12 h-12 animate-spin text-primary mb-4" />
+                <p className="text-muted-foreground text-sm">Loading menu items...</p>
+              </div>
+            ) : error ? (
+              <div className="flex flex-col items-center justify-center h-full">
+                <div className="text-destructive text-sm font-medium mb-2">Error loading products</div>
+                <p className="text-muted-foreground text-xs">{error}</p>
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  className="mt-4"
+                  // @ts-ignore
+                  onClick={() => window.location.reload()}
+                >
+                  Retry
+                </Button>
+              </div>
+            ) : filteredProducts.length === 0 ? (
+              <div className="flex flex-col items-center justify-center h-full">
+                <p className="text-muted-foreground text-sm">
+                  {searchQuery ? 'No products found' : 'No menu items available'}
+                </p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+                {filteredProducts.map((product) => {
+                  const inCart = cart[product.id]
+                  const isSelected = inCart && inCart.quantity > 0
 
-                return (
-                  <Card
-                    key={product.id}
-                    className={`cursor-pointer transition-all border ${
-                      isSelected
-                        ? "bg-violet-100 shadow-md"
-                        : "border-border/10 bg-card hover:border-primary/50 hover:shadow-sm"
-                    }`}
-                    onClick={() => handleProductClick(product)}
-                  >
-                    <CardContent className="px-4 space-y-3">
-                      <div>
-                        <h3 className="font-semibold text-sm text-foreground leading-snug">{product.name}</h3>
-                        <p className="text-xs text-muted-foreground mt-1">{product.category}</p>
-                      </div>
-                      <div className="flex items-center justify-between pt-1">
-                        <span className="font-semibold text-base text-foreground">${product.price.toFixed(2)}</span>
-                        {isSelected && (
-                          <Badge className="bg-primary hover:bg-primary text-primary-foreground px-2 py-0.5 text-xs font-medium">
-                            {inCart.quantity}
-                          </Badge>
-                        )}
-                      </div>
-                    </CardContent>
-                  </Card>
-                )
-              })}
-            </div>
+                  return (
+                    <Card
+                      key={product.id}
+                      className={`cursor-pointer transition-all border ${
+                        isSelected
+                          ? "bg-violet-100 shadow-md"
+                          : "border-border/10 bg-card hover:border-primary/50 hover:shadow-sm"
+                      }`}
+                      onClick={() => handleProductClick(product)}
+                    >
+                      <CardContent className="px-4 space-y-3">
+                        <div>
+                          <h3 className="font-semibold text-sm text-foreground leading-snug">{product.name}</h3>
+                          {product.description && (
+                            <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{product.description}</p>
+                          )}
+                        </div>
+                        <div className="flex items-center justify-between pt-1">
+                          <span className="font-semibold text-base text-foreground">${product.price.toFixed(2)}</span>
+                          {isSelected && (
+                            <Badge className="bg-primary hover:bg-primary text-primary-foreground px-2 py-0.5 text-xs font-medium">
+                              {inCart.quantity}
+                            </Badge>
+                          )}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  )
+                })}
+              </div>
+            )}
           </div>
         </div>
 
@@ -266,20 +309,9 @@ export default function NewOrder() {
 
           <div className="border-t border-border bg-card">
             <div className="px-6 py-5 space-y-4">
-              <div className="space-y-2.5">
-                <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Subtotal</span>
-                  <span className="font-medium text-foreground">${subtotal.toFixed(2)}</span>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Tax (10%)</span>
-                  <span className="font-medium text-foreground">${tax.toFixed(2)}</span>
-                </div>
-                <Separator className="my-3 bg-border" />
                 <div className="flex justify-between items-center pt-1">
                   <span className="text-sm font-semibold text-foreground">Total</span>
-                  <span className="text-xl font-bold text-primary">${total.toFixed(2)}</span>
-                </div>
+                  <span className="text-xl font-bold text-primary">${subtotal.toFixed(2)}</span>
               </div>
               <Button
                 className="w-full bg-primary hover:bg-primary/90 text-primary-foreground h-10 text-sm font-medium transition-colors"
