@@ -1,7 +1,7 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from "react"
-import { Plus, Minus, ShoppingCart, Search, X, Loader2 } from "lucide-react"
+import { useState, useEffect } from "react";
+import { Plus, Minus, ShoppingCart, Search, X, Loader2 } from "lucide-react";
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -9,66 +9,69 @@ import {
   BreadcrumbList,
   BreadcrumbPage,
   BreadcrumbSeparator,
-} from "@/components/ui/breadcrumb"
-import { Separator } from "@/components/ui/separator"
-import { SidebarTrigger } from "@/components/ui/sidebar"
-import { Card, CardContent } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
+} from "@/components/ui/breadcrumb";
+import { Separator } from "@/components/ui/separator";
+import { SidebarTrigger } from "@/components/ui/sidebar";
+import { Card, CardContent } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { EmptyHookahState } from "@/components/empty-hookah-state";
 
 interface Product {
-  id: string
-  name: string
-  price: number
-  description?: string
+  id: string;
+  name: string;
+  price: number;
+  description?: string;
 }
 
 interface CartItem extends Product {
-  quantity: number
+  quantity: number;
 }
 
 interface CartState {
-  [key: string]: CartItem
+  [key: string]: CartItem;
 }
 
 export default function NewOrder() {
-  const [customerName, setCustomerName] = useState("")
-  const [searchQuery, setSearchQuery] = useState("")
-  const [cart, setCart] = useState<CartState>({})
-  const [products, setProducts] = useState<Product[]>([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
+  const [customerName, setCustomerName] = useState("");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [cart, setCart] = useState<CartState>({});
+  const [products, setProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   // Fetch products from database
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        setLoading(true)
-        const response = await fetch('/api/menu-items')
-        
+        setLoading(true);
+        const response = await fetch("/api/menu-items");
+
         if (!response.ok) {
-          throw new Error('Failed to fetch menu items')
+          throw new Error("Failed to fetch menu items");
         }
-        
-        const json = await response.json()
-        const data: Product[] = Array.isArray(json) ? (json as Product[]) : []
-        setProducts(data)
-        setError(null)
+
+        const json = await response.json();
+        const data: Product[] = Array.isArray(json) ? (json as Product[]) : [];
+        setProducts(data);
+        setError(null);
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'Failed to load products')
-        console.error('Error fetching products:', err)
+        setError(
+          err instanceof Error ? err.message : "Failed to load products"
+        );
+        console.error("Error fetching products:", err);
       } finally {
-        setLoading(false)
+        setLoading(false);
       }
-    }
+    };
 
-    fetchProducts()
-  }, [])
+    fetchProducts();
+  }, []);
 
-  const filteredProducts = products.filter((product) => 
+  const filteredProducts = products.filter((product) =>
     product.name.toLowerCase().includes(searchQuery.toLowerCase())
-  )
+  );
 
   const addToCart = (product: Product) => {
     setCart((prev) => ({
@@ -77,17 +80,17 @@ export default function NewOrder() {
         ...product,
         quantity: (prev[product.id]?.quantity || 0) + 1,
       },
-    }))
-  }
+    }));
+  };
 
   const updateQuantity = (productId: string, change: number) => {
     setCart((prev) => {
-      const currentQty = prev[productId]?.quantity || 0
-      const newQty = currentQty + change
+      const currentQty = prev[productId]?.quantity || 0;
+      const newQty = currentQty + change;
 
       if (newQty <= 0) {
-        const { [productId]: removed, ...rest } = prev
-        return rest
+        const { [productId]: removed, ...rest } = prev;
+        return rest;
       }
 
       return {
@@ -96,29 +99,32 @@ export default function NewOrder() {
           ...prev[productId],
           quantity: newQty,
         },
-      }
-    })
-  }
+      };
+    });
+  };
 
   const removeFromCart = (productId: string) => {
     setCart((prev) => {
-      const { [productId]: removed, ...rest } = prev
-      return rest
-    })
-  }
+      const { [productId]: removed, ...rest } = prev;
+      return rest;
+    });
+  };
 
   const handleProductClick = (product: Product) => {
-    const inCart = cart[product.id]
+    const inCart = cart[product.id];
     if (inCart && inCart.quantity === 1) {
-      removeFromCart(product.id)
+      removeFromCart(product.id);
     } else {
-      addToCart(product)
+      addToCart(product);
     }
-  }
+  };
 
-  const cartItems = Object.values(cart)
-  const subtotal = cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0)
-  const totalItems = cartItems.reduce((sum, item) => sum + item.quantity, 0)
+  const cartItems = Object.values(cart);
+  const subtotal = cartItems.reduce(
+    (sum, item) => sum + item.price * item.quantity,
+    0
+  );
+  const totalItems = cartItems.reduce((sum, item) => sum + item.quantity, 0);
 
   return (
     <div className="flex flex-col h-screen bg-background">
@@ -129,13 +135,18 @@ export default function NewOrder() {
           <Breadcrumb>
             <BreadcrumbList>
               <BreadcrumbItem className="hidden md:block">
-                <BreadcrumbLink href="#" className="text-muted-foreground hover:text-foreground text-sm">
+                <BreadcrumbLink
+                  href="#"
+                  className="text-muted-foreground hover:text-foreground text-sm"
+                >
                   Order Taking
                 </BreadcrumbLink>
               </BreadcrumbItem>
               <BreadcrumbSeparator className="hidden md:block" />
               <BreadcrumbItem>
-                <BreadcrumbPage className="text-foreground text-sm font-medium">New Order</BreadcrumbPage>
+                <BreadcrumbPage className="text-foreground text-sm font-medium">
+                  New Order
+                </BreadcrumbPage>
               </BreadcrumbItem>
             </BreadcrumbList>
           </Breadcrumb>
@@ -153,7 +164,7 @@ export default function NewOrder() {
               // @ts-ignore
               onChange={(e) => setCustomerName(e.target.value)}
               className="max-w-md h-9 bg-muted border-border text-sm"
-              />
+            />
             <div className="relative max-w-md">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
               <Input
@@ -170,15 +181,19 @@ export default function NewOrder() {
             {loading ? (
               <div className="flex flex-col items-center justify-center h-full">
                 <Loader2 className="w-12 h-12 animate-spin text-primary mb-4" />
-                <p className="text-muted-foreground text-sm">Loading menu items...</p>
+                <p className="text-muted-foreground text-sm">
+                  Loading menu items...
+                </p>
               </div>
             ) : error ? (
               <div className="flex flex-col items-center justify-center h-full">
-                <div className="text-destructive text-sm font-medium mb-2">Error loading products</div>
+                <div className="text-destructive text-sm font-medium mb-2">
+                  Error loading products
+                </div>
                 <p className="text-muted-foreground text-xs">{error}</p>
-                <Button 
-                  variant="outline" 
-                  size="sm" 
+                <Button
+                  variant="outline"
+                  size="sm"
                   className="mt-4"
                   // @ts-ignore
                   onClick={() => window.location.reload()}
@@ -189,14 +204,20 @@ export default function NewOrder() {
             ) : filteredProducts.length === 0 ? (
               <div className="flex flex-col items-center justify-center h-full">
                 <p className="text-muted-foreground text-sm">
-                  {searchQuery ? 'No products found' : 'No menu items available'}
+                  {searchQuery ? (
+                    "No products found"
+                  ) : (
+                    <>
+                      <EmptyHookahState />
+                    </>
+                  )}
                 </p>
               </div>
             ) : (
               <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
                 {filteredProducts.map((product) => {
-                  const inCart = cart[product.id]
-                  const isSelected = inCart && inCart.quantity > 0
+                  const inCart = cart[product.id];
+                  const isSelected = inCart && inCart.quantity > 0;
 
                   return (
                     <Card
@@ -210,13 +231,19 @@ export default function NewOrder() {
                     >
                       <CardContent className="px-4 space-y-3">
                         <div>
-                          <h3 className="font-semibold text-sm text-foreground leading-snug">{product.name}</h3>
+                          <h3 className="font-semibold text-sm text-foreground leading-snug">
+                            {product.name}
+                          </h3>
                           {product.description && (
-                            <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{product.description}</p>
+                            <p className="text-xs text-muted-foreground mt-1 line-clamp-2">
+                              {product.description}
+                            </p>
                           )}
                         </div>
                         <div className="flex items-center justify-between pt-1">
-                          <span className="font-semibold text-base text-foreground">${product.price.toFixed(2)}</span>
+                          <span className="font-semibold text-base text-foreground">
+                            ${product.price.toFixed(2)}
+                          </span>
                           {isSelected && (
                             <Badge className="bg-primary hover:bg-primary text-primary-foreground px-2 py-0.5 text-xs font-medium">
                               {inCart.quantity}
@@ -225,7 +252,7 @@ export default function NewOrder() {
                         </div>
                       </CardContent>
                     </Card>
-                  )
+                  );
                 })}
               </div>
             )}
@@ -253,8 +280,12 @@ export default function NewOrder() {
             {cartItems.length === 0 ? (
               <div className="flex flex-col items-center justify-center h-full px-6 text-muted-foreground">
                 <ShoppingCart className="w-14 h-14 mb-3 opacity-30" />
-                <p className="font-medium text-muted-foreground text-sm">No items yet</p>
-                <p className="text-xs text-center mt-1 text-muted-foreground/80">Select products to start</p>
+                <p className="font-medium text-muted-foreground text-sm">
+                  No items yet
+                </p>
+                <p className="text-xs text-center mt-1 text-muted-foreground/80">
+                  Select products to start
+                </p>
               </div>
             ) : (
               <div className="p-4 space-y-3">
@@ -265,8 +296,12 @@ export default function NewOrder() {
                   >
                     <div className="flex items-start justify-between mb-3">
                       <div className="flex-1 min-w-0">
-                        <h4 className="font-medium text-sm text-foreground truncate">{item.name}</h4>
-                        <p className="text-xs text-muted-foreground mt-0.5">${item.price.toFixed(2)}</p>
+                        <h4 className="font-medium text-sm text-foreground truncate">
+                          {item.name}
+                        </h4>
+                        <p className="text-xs text-muted-foreground mt-0.5">
+                          ${item.price.toFixed(2)}
+                        </p>
                       </div>
                       <Button
                         variant="ghost"
@@ -287,7 +322,9 @@ export default function NewOrder() {
                         >
                           <Minus className="w-3 h-3" />
                         </Button>
-                        <span className="w-6 text-center font-semibold text-sm text-foreground">{item.quantity}</span>
+                        <span className="w-6 text-center font-semibold text-sm text-foreground">
+                          {item.quantity}
+                        </span>
                         <Button
                           variant="outline"
                           size="icon"
@@ -309,9 +346,13 @@ export default function NewOrder() {
 
           <div className="border-t border-border bg-card">
             <div className="px-6 py-5 space-y-4">
-                <div className="flex justify-between items-center pt-1">
-                  <span className="text-sm font-semibold text-foreground">Total</span>
-                  <span className="text-xl font-bold text-primary">${subtotal.toFixed(2)}</span>
+              <div className="flex justify-between items-center pt-1">
+                <span className="text-sm font-semibold text-foreground">
+                  Total
+                </span>
+                <span className="text-xl font-bold text-primary">
+                  ${subtotal.toFixed(2)}
+                </span>
               </div>
               <Button
                 className="w-full bg-primary hover:bg-primary/90 text-primary-foreground h-10 text-sm font-medium transition-colors"
@@ -324,5 +365,5 @@ export default function NewOrder() {
         </div>
       </div>
     </div>
-  )
+  );
 }
