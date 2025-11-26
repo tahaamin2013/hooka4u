@@ -46,7 +46,7 @@ model Order {
   customerName String?
   items        OrderItem[]
   subtotal     Float
-  paymentType  PaymentType
+  paymentType  PaymentType?
   Seating       String?
   createdAt    DateTime    @default(now())
 }

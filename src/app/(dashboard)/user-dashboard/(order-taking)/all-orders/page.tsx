@@ -1,6 +1,6 @@
 "use client";
 import { useState, useEffect } from "react";
-import { Loader2, ShoppingBag, Clock, User, Package, DollarSign, Calendar } from "lucide-react";
+import { Loader2, ShoppingBag, Clock, User, Package, DollarSign, Calendar, CreditCard, Banknote, MapPin } from "lucide-react";
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -31,6 +31,8 @@ interface Order {
   subtotal: number;
   createdAt: string;
   items: OrderItem[];
+  paymentType?: "CASH" | "CARD";
+  Seating?: string;
 }
 
 export default function AllOrders() {
@@ -82,6 +84,17 @@ export default function AllOrders() {
 
   const getTotalItems = (items: OrderItem[]) => {
     return items.reduce((sum, item) => sum + item.quantity, 0);
+  };
+
+  const getPaymentIcon = (paymentType?: string) => {
+    if (paymentType === "CARD") {
+      return <CreditCard className="w-3 h-3" />;
+    }
+    return <Banknote className="w-3 h-3" />;
+  };
+
+  const getPaymentLabel = (paymentType?: string) => {
+    return paymentType === "CARD" ? "Card" : "Cash";
   };
 
   return (
@@ -173,12 +186,24 @@ export default function AllOrders() {
                         </div>
                       </div>
 
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-2 flex-wrap">
                         <Badge variant="secondary" className="text-xs px-2 py-0.5">
                           <Package className="w-3 h-3 mr-1" />
                           {getTotalItems(order.items)} items
                         </Badge>
-                        <div className="flex-1 h-px bg-border"></div>
+                        <Badge 
+                          variant={order.paymentType === "CARD" ? "default" : "outline"} 
+                          className="text-xs px-2 py-0.5"
+                        >
+                          {getPaymentIcon(order.paymentType)}
+                          <span className="ml-1">{getPaymentLabel(order.paymentType)}</span>
+                        </Badge>
+                        {order.Seating && (
+                          <Badge variant="outline" className="text-xs px-2 py-0.5">
+                            <MapPin className="w-3 h-3 mr-1" />
+                            {order.Seating}
+                          </Badge>
+                        )}
                       </div>
                     </CardHeader>
 

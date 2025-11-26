@@ -9,11 +9,11 @@ export async function POST(request: NextRequest) {
     const body = (await request.json()) as {
       customerName?: string;
       paymentType?: "CASH" | "CARD";
-      seating?: string;
+      Seating?: string;
       items?: { productId: string; quantity: number }[];
       subtotal?: number;
     };
-    const { customerName, paymentType, seating, items, subtotal } = body;
+    const { customerName, paymentType, Seating, items, subtotal } = body;
 
     // Validate request
     if (!customerName || !customerName.trim()) {
@@ -23,12 +23,10 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    if (!paymentType || !["CASH", "CARD"].includes(paymentType)) {
-      return NextResponse.json(
-        { error: "Valid payment type is required (CASH or CARD)" },
-        { status: 400 }
-      );
-    }
+    // Default to CASH if paymentType is not provided
+    const finalPaymentType = paymentType && ["CASH", "CARD"].includes(paymentType) 
+      ? paymentType 
+      : "CASH";
 
     if (!items || !Array.isArray(items) || items.length === 0) {
       return NextResponse.json(
@@ -48,8 +46,8 @@ export async function POST(request: NextRequest) {
     const order = await prisma.order.create({
       data: {
         customerName: customerName.trim(),
-        paymentType,
-        Seating: seating?.trim() || null,
+        paymentType: finalPaymentType,
+        Seating: Seating?.trim() || null,
         subtotal,
         items: {
           create: items.map((item: { productId: string; quantity: number }) => ({
@@ -79,6 +77,7 @@ export async function POST(request: NextRequest) {
 
 export async function GET() {
   try {
+    // Fetch all orders from database
     const orders = await prisma.order.findMany({
       include: {
         items: {
@@ -92,7 +91,13 @@ export async function GET() {
       },
     });
 
-    return NextResponse.json(orders);
+    // Map orders and set default paymentType to CASH if null
+    const ordersWithDefaults = orders.map((order) => ({
+      ...order,
+      paymentType: order.paymentType || "CASH",
+    }));
+
+    return NextResponse.json(ordersWithDefaults);
   } catch (error) {
     console.error("Error fetching orders:", error);
     return NextResponse.json(
