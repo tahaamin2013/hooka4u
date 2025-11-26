@@ -143,6 +143,17 @@ export default function NewOrder() {
       return;
     }
 
+        if (!seating.trim()) {
+      toast.info("Seating Location is required", {
+        description: "Please enter a seating location before placing the order.",
+        action: {
+          label: "Close",
+          onClick: () => console.log("Toast Closed"),
+        },
+      });
+      return;
+    }
+
     try {
       setSubmitting(true);
       const orderData = {
@@ -468,7 +479,7 @@ export default function NewOrder() {
 
                 <div className="space-y-2">
                   <Label htmlFor="seating" className="text-sm font-medium">
-                    Seating Location
+                    Seating Location *
                   </Label>
                   <Input
                     id="seating"
