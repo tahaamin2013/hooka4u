@@ -41,12 +41,14 @@ const sidebarData = {
       items: [
         { title: "New Order", url: "/user-dashboard/new-order" },
         { title: "All Orders", url: "/user-dashboard/all-orders" },
+        { title: "Menu Prices", url: "/user-dashboard/menu-prices" },
       ],
     },
     {
       title: "Admin",
       url: "#",
       icon: Bot,
+      requiresAdmin: true, // Add this flag
       items: [
         { title: "Menu", url: "/user-dashboard/menu" },
       ],
@@ -97,13 +99,27 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         avatar: "/avatars/default.jpg",
       }
 
+  // Filter navigation items based on user role
+  const filteredNavMain = React.useMemo(() => {
+    const userRole = session?.user?.role
+    
+    return sidebarData.navMain.filter((item) => {
+      // If the item requires admin access, only show it to admins
+      if (item.requiresAdmin) {
+        return userRole === "ADMIN"
+      }
+      // Show all other items to everyone
+      return true
+    })
+  }, [session?.user?.role])
+
   return (
     <Sidebar collapsible="icon" {...props}>
       <SidebarHeader>
         <TeamSwitcher team={sidebarData.teams} />
       </SidebarHeader>
       <SidebarContent>
-        <NavMain items={sidebarData.navMain} />
+        <NavMain items={filteredNavMain} />
         <NavProjects projects={sidebarData.projects} />
       </SidebarContent>
       <SidebarFooter>

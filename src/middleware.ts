@@ -9,7 +9,6 @@ export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
   const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
-  const role = token?.role;
 
   // --------------------------
   // 1️⃣ If logged in
@@ -17,17 +16,8 @@ export async function middleware(req: NextRequest) {
   if (token) {
     // Redirect logged-in user if they try to access login or home
     if (pathname === "/" || pathname === "/login") {
-      const redirectTo = role === "ADMIN" ? "/admin-dashboard" : "/user-dashboard";
+      const redirectTo = "/user-dashboard";
       return NextResponse.redirect(new URL(redirectTo, req.url));
-    }
-
-    // Prevent users from accessing wrong dashboard
-    if (pathname.startsWith("/admin-dashboard") && role !== "ADMIN") {
-      return NextResponse.redirect(new URL("/user-dashboard", req.url));
-    }
-
-    if (pathname.startsWith("/user-dashboard") && role !== "USER") {
-      return NextResponse.redirect(new URL("/admin-dashboard", req.url));
     }
 
     return NextResponse.next();

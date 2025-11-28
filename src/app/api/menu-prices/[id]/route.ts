@@ -1,0 +1,90 @@
+
+// app/api/menu-items/[id]/route.ts
+import { NextRequest, NextResponse } from "next/server";
+import { PrismaClient } from "@prisma/client";
+
+const prisma = new PrismaClient();
+
+// GET single menu item
+export async function GET(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    const { id } = await params;
+    
+    const menuItem = await prisma.menuItems.findUnique({
+      where: {
+        id: id,
+      },
+    });
+
+    if (!menuItem) {
+      return NextResponse.json(
+        { error: "Menu item not found" },
+        { status: 404 }
+      );
+    }
+
+    return NextResponse.json(menuItem);
+  } catch (error) {
+    console.error("Error fetching menu item:", error);
+    return NextResponse.json(
+      { error: "Failed to fetch menu item" },
+      { status: 500 }
+    );
+  }
+}
+
+// PUT update menu item (price only)
+export async function PUT(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    const { id } = await params;
+    const body = await request.json();
+    const { price } = body;
+
+    // Validate price
+    if (typeof price !== "number" || price < 0) {
+      return NextResponse.json(
+        { error: "Invalid price. Price must be a number greater than or equal to 0." },
+        { status: 400 }
+      );
+    }
+
+    // Check if menu item exists
+    const existingItem = await prisma.menuItems.findUnique({
+      where: {
+        id: id,
+      },
+    });
+
+    if (!existingItem) {
+      return NextResponse.json(
+        { error: "Menu item not found" },
+        { status: 404 }
+      );
+    }
+
+    // Update only the price
+    const updatedMenuItem = await prisma.menuItems.update({
+      where: {
+        id: id,
+      },
+      data: {
+        price: price,
+        updatedAt: new Date(),
+      },
+    });
+
+    return NextResponse.json(updatedMenuItem);
+  } catch (error) {
+    console.error("Error updating menu item:", error);
+    return NextResponse.json(
+      { error: "Failed to update menu item" },
+      { status: 500 }
+    );
+  }
+}
