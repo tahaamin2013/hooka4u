@@ -1,4 +1,3 @@
-// app/api/orders/route.ts
 import { NextRequest, NextResponse } from "next/server";
 import { PrismaClient } from "@prisma/client";
 
@@ -60,6 +59,7 @@ export async function POST(request: NextRequest) {
         paymentType: finalPaymentType,
         Seating: Seating.trim(),
         subtotal,
+        status: "PENDING", // Default status for new orders
         items: {
           create: items.map((item: { productId: string; quantity: number }) => ({
             productId: item.productId,

@@ -43,12 +43,14 @@ model MenuItems {
 
 model Order {
   id           String      @id @default(uuid()) @map("_id")
-  customerName String?
-  items        OrderItem[]
+  customerName String
+  paymentType  String?     @default("CASH")
+  Seating      String
   subtotal     Float
-  paymentType  PaymentType?
-  Seating      String?
+  status       String      @default("PENDING") // Add this line
   createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+  items        OrderItem[]
 }
 
 enum PaymentType {
@@ -57,11 +59,12 @@ enum PaymentType {
 }
 
 model OrderItem {
-  id        String @id @default(uuid()) @map("_id")
+  id        String   @id @default(cuid()) @map("_id")
   orderId   String
   productId String
   quantity  Int
-
-  order   Order     @relation(fields: [orderId], references: [id])
-  product MenuItems @relation(fields: [productId], references: [id])
+  order     Order    @relation(fields: [orderId], references: [id])
+  product   MenuItems  @relation(fields: [productId], references: [id])
+  createdAt DateTime? @default(now())
+  updatedAt DateTime? @updatedAt
 }

@@ -1,17 +1,13 @@
 "use client"
 
-import * as React from "react"
-import { useSession } from "next-auth/react"
 import {
-  BookOpen,
   Bot,
   Frame,
   GalleryVerticalEnd,
-  Map,
-  MenuSquare,
-  PieChart,
-  Settings2,
+  MenuSquare
 } from "lucide-react"
+import { useSession } from "next-auth/react"
+import * as React from "react"
 
 import { NavMain } from "@/components/sidebars/user-sidebar/nav-main"
 import { NavProjects } from "@/components/sidebars/user-sidebar/nav-projects"
@@ -91,7 +87,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   }, [session?.user?.role])
 
   return (
-    <Sidebar collapsible="icon" {...props}>
+    <Sidebar  collapsible="icon" {...props}>
       <SidebarHeader>
         <TeamSwitcher team={sidebarData.teams} />
       </SidebarHeader>

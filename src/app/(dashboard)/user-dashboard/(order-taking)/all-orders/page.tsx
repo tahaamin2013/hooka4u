@@ -1,6 +1,6 @@
 "use client";
 import { useState, useEffect, useRef } from "react";
-import { Loader2, ShoppingBag, Clock, User, Package, DollarSign, Calendar, CreditCard, Banknote, MapPin, Trash2, Bell } from "lucide-react";
+import { Loader2, ShoppingBag, Clock, User, Package, DollarSign, Calendar, CreditCard, Banknote, MapPin, Trash2, Bell, CheckCircle2, AlertCircle } from "lucide-react";
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -44,6 +44,7 @@ interface Order {
   items: OrderItem[];
   paymentType?: "CASH" | "CARD";
   Seating?: string;
+  status?: "PENDING" | "DELIVERED";
 }
 
 export default function AllOrders() {
@@ -55,25 +56,21 @@ export default function AllOrders() {
   const [deleting, setDeleting] = useState(false);
   const [newOrderAnimation, setNewOrderAnimation] = useState<string | null>(null);
   const [lastFetchTime, setLastFetchTime] = useState<Date | null>(null);
+  const [updatingStatus, setUpdatingStatus] = useState<string | null>(null);
   
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const previousOrderIdsRef = useRef<Set<string>>(new Set());
   const isInitialLoadRef = useRef(true);
 
   useEffect(() => {
-    // Create audio element for notification sound
     audioRef.current = new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBSuBzvLZiTYHGWe77OVvSxMLT6Xl8Lhb');
     
-    // Initial fetch
     fetchOrders();
-    
-    // Request notification permission
     requestNotificationPermission();
 
-    // Fetch orders every 1 minute (60000ms)
     const pollInterval = setInterval(() => {
       fetchOrdersQuietly();
-    }, 60000); // 1 minute
+    }, 60000);
 
     return () => {
       clearInterval(pollInterval);
@@ -85,10 +82,8 @@ export default function AllOrders() {
   }, []);
 
   const handleNewOrder = (newOrder: Order) => {
-    // Play notification sound
     playNotificationSound();
     
-    // Show browser notification
     if ('Notification' in window && Notification.permission === 'granted') {
       new Notification('🔔 New Order Received!', {
         body: `Order from ${newOrder.customerName || 'Guest'} - $${newOrder.subtotal.toFixed(2)}`,
@@ -98,7 +93,6 @@ export default function AllOrders() {
       });
     }
     
-    // Trigger animation
     setNewOrderAnimation(newOrder.id);
     setTimeout(() => setNewOrderAnimation(null), 3000);
   };
@@ -125,7 +119,6 @@ export default function AllOrders() {
       setOrders(fetchedOrders);
       setLastFetchTime(new Date());
       
-      // Initialize previous order IDs
       if (isInitialLoadRef.current) {
         previousOrderIdsRef.current = new Set(fetchedOrders.map((o: Order) => o.id));
         isInitialLoadRef.current = false;
@@ -140,7 +133,6 @@ export default function AllOrders() {
     }
   };
 
-  // Quiet fetch for polling (no loading state change)
   const fetchOrdersQuietly = async () => {
     try {
       const response = await fetch("/api/orders/get");
@@ -149,18 +141,15 @@ export default function AllOrders() {
       const data = await response.json();
       const fetchedOrders = Array.isArray(data) ? data : [];
       
-      // Check for new orders
       const currentOrderIds = new Set(fetchedOrders.map((o: Order) => o.id));
       const newOrders = fetchedOrders.filter(
         (order: Order) => !previousOrderIdsRef.current.has(order.id)
       );
       
       if (newOrders.length > 0) {
-        // Trigger notification for each new order
         newOrders.forEach((order: Order) => handleNewOrder(order));
       }
       
-      // Update orders and previous IDs
       setOrders(fetchedOrders);
       previousOrderIdsRef.current = currentOrderIds;
       setLastFetchTime(new Date());
@@ -240,37 +229,60 @@ export default function AllOrders() {
     return items.reduce((sum, item) => sum + item.quantity, 0);
   };
 
-  const getPaymentIcon = (paymentType?: string) => {
-    if (paymentType === "CARD") {
-      return <CreditCard className="w-3 h-3" />;
+  const handleStatusToggle = async (order: Order) => {
+    const newStatus = order.status === "DELIVERED" ? "PENDING" : "DELIVERED";
+    
+    try {
+      setUpdatingStatus(order.id);
+      const response = await fetch(`/api/orders/status`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          orderId: order.id,
+          status: newStatus,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to update order status");
+      }
+
+      setOrders((prevOrders) =>
+        prevOrders.map((o) =>
+          o.id === order.id ? { ...o, status: newStatus } : o
+        )
+      );
+    } catch (err) {
+      console.error("Error updating order status:", err);
+      setError(err instanceof Error ? err.message : "Failed to update order status");
+    } finally {
+      setUpdatingStatus(null);
     }
-    return <Banknote className="w-3 h-3" />;
   };
 
-  const getPaymentLabel = (paymentType?: string) => {
-    return paymentType === "CARD" ? "Card" : "Cash";
-  };
+  const pendingOrders = orders.filter(o => !o.status || o.status === "PENDING");
+  const deliveredOrders = orders.filter(o => o.status === "DELIVERED");
 
   return (
-    <div className="flex flex-col h-screen bg-background">
-      <header className="flex h-14 shrink-0 items-center gap-3 bg-card border-b border-border">
+    <div className="flex flex-col h-screen bg-zinc-50">
+      {/* Header */}
+      <header className="flex h-14 shrink-0 items-center gap-3 bg-white border-b border-zinc-200">
         <div className="flex items-center gap-3 px-5 w-full justify-between">
           <div className="flex items-center gap-3">
             <SidebarTrigger className="-ml-1" />
-            <Separator orientation="vertical" className="h-4" />
+            <Separator orientation="vertical" className="h-4 bg-zinc-200" />
             <Breadcrumb>
               <BreadcrumbList>
                 <BreadcrumbItem className="hidden md:block">
-                  <BreadcrumbLink
-                    href="#"
-                    className="text-muted-foreground hover:text-foreground text-sm"
-                  >
+                  <BreadcrumbLink href="#" className="text-zinc-600 hover:text-zinc-900 text-sm">
                     Order Tracking
                   </BreadcrumbLink>
                 </BreadcrumbItem>
                 <BreadcrumbSeparator className="hidden md:block" />
                 <BreadcrumbItem>
-                  <BreadcrumbPage className="text-foreground text-sm font-medium">
+                  <BreadcrumbPage className="text-zinc-900 text-sm font-medium">
                     All Orders
                   </BreadcrumbPage>
                 </BreadcrumbItem>
@@ -278,78 +290,88 @@ export default function AllOrders() {
             </Breadcrumb>
           </div>
           
-          {/* Last Update Time */}
-          <div className="flex items-center gap-2">
-            <Clock className="w-3.5 h-3.5 text-muted-foreground" />
-            <span className="text-xs text-muted-foreground">
-              Updated {getTimeSinceLastFetch()}
-            </span>
+          <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2 text-xs text-zinc-500">
+              <div className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+              <Clock className="w-3.5 h-3.5" />
+              <span>Updated {getTimeSinceLastFetch()}</span>
+            </div>
           </div>
         </div>
       </header>
 
-      <div className="flex-1 overflow-hidden bg-gradient-to-br from-background via-background to-muted/20">
+      <div className="flex-1 overflow-hidden">
         {loading ? (
           <div className="flex flex-col items-center justify-center h-full">
-            <Loader2 className="w-12 h-12 animate-spin text-primary mb-4" />
-            <p className="text-muted-foreground text-sm">Loading orders...</p>
+            <Loader2 className="w-10 h-10 animate-spin text-zinc-400 mb-3" />
+            <p className="text-zinc-500 text-sm">Loading orders</p>
           </div>
         ) : error ? (
           <div className="flex flex-col items-center justify-center h-full">
-            <div className="text-destructive text-sm font-medium mb-2">
-              Error loading orders
-            </div>
-            <p className="text-muted-foreground text-xs">{error}</p>
-            <Button onClick={fetchOrders} variant="outline" className="mt-4">
+            <AlertCircle className="w-10 h-10 text-red-500 mb-3" />
+            <div className="text-red-600 text-sm font-medium mb-1">Error loading orders</div>
+            <p className="text-zinc-500 text-xs mb-4">{error}</p>
+            <Button onClick={fetchOrders} variant="outline" className="border-zinc-300 hover:bg-zinc-100">
               Retry
             </Button>
           </div>
         ) : orders.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full">
-            <ShoppingBag className="w-16 h-16 text-muted-foreground/30 mb-4" />
-            <p className="text-muted-foreground text-sm font-medium">No orders yet</p>
-            <p className="text-muted-foreground/70 text-xs mt-1">
-              Checking for new orders every minute...
-            </p>
+            <ShoppingBag className="w-16 h-16 text-zinc-300 mb-4" />
+            <p className="text-zinc-600 text-sm font-medium">No orders</p>
+            <p className="text-zinc-400 text-xs mt-1">Waiting for new orders...</p>
           </div>
         ) : (
           <ScrollArea className="h-full">
             <div className="p-6">
-              <div className="flex items-center justify-between mb-6">
-                <div>
-                  <h2 className="text-2xl font-bold text-foreground">Orders Board</h2>
-                  <p className="text-sm text-muted-foreground mt-1">
-                    {orders.length} {orders.length === 1 ? "order" : "orders"} total
-                  </p>
+              {/* Stats */}
+              <div className="grid grid-cols-3 gap-4 mb-6">
+                <div className="bg-white border border-zinc-200 p-5">
+                  <div className="text-xs text-zinc-500 uppercase tracking-wider mb-2">Total</div>
+                  <div className="text-3xl font-bold text-zinc-900">{orders.length}</div>
                 </div>
-                <Badge variant="outline" className="px-3 py-1.5 text-sm">
-                  <Bell className="w-3.5 h-3.5 mr-1.5 animate-pulse" />
-                  Auto-refresh (1 min)
-                </Badge>
+                <div className="bg-white border border-zinc-200 p-5">
+                  <div className="text-xs text-zinc-500 uppercase tracking-wider mb-2">Pending</div>
+                  <div className="text-3xl font-bold text-amber-600">{pendingOrders.length}</div>
+                </div>
+                <div className="bg-white border border-zinc-200 p-5">
+                  <div className="text-xs text-zinc-500 uppercase tracking-wider mb-2">Delivered</div>
+                  <div className="text-3xl font-bold text-emerald-600">{deliveredOrders.length}</div>
+                </div>
               </div>
 
+              {/* Orders Grid */}
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-                {orders.map((order) => (
+                {orders.map((order) => {
+                  const isPending = !order.status || order.status === "PENDING";
+                  const isDelivered = order.status === "DELIVERED";
+                  const isVIP = order.Seating?.toUpperCase().includes("VIP");
+                  
+                  return (
                   <Card
                     key={order.id}
-                    className={`bg-card border-border hover:shadow-lg transition-all duration-300 hover:border-primary/50 flex flex-col ${
-                      newOrderAnimation === order.id 
-                        ? 'animate-[pulse_0.5s_ease-in-out_4] border-primary border-2 shadow-xl shadow-primary/30 scale-105' 
-                        : ''
+                    className={`group bg-white border hover:border-zinc-400 transition-all duration-200 flex flex-col ${
+                      newOrderAnimation === order.id ? 'animate-[pulse_0.5s_ease-in-out_4] border-blue-500' : 'border-zinc-200'
                     }`}
                   >
-                    <CardHeader className="pb-3 space-y-3">
+                    <CardHeader className="pb-4 space-y-3">
                       <div className="flex items-start justify-between gap-2">
-                        <div className="flex items-center gap-2 min-w-0 flex-1">
-                          <div className="bg-primary/10 rounded-full p-2 shrink-0">
-                            <User className="w-4 h-4 text-primary" />
+                        <div className="flex items-center gap-3 min-w-0 flex-1">
+                          <div className="w-10 h-10 bg-zinc-100 flex items-center justify-center shrink-0">
+                            <User className="w-5 h-5 text-zinc-600" />
                           </div>
-                          <div className="min-w-0">
-                            <h3 className="font-semibold text-base text-foreground truncate">
-                              {order.customerName || "Guest"}
-                            </h3>
-                            <p className="text-xs text-muted-foreground flex items-center gap-1 mt-0.5">
-                              <Calendar className="w-3 h-3" />
+                          <div className="min-w-0 flex-1">
+                            <div className="flex items-center gap-2 mb-1">
+                              <h3 className="font-semibold text-sm text-zinc-900 truncate">
+                                {order.customerName || "Guest"}
+                              </h3>
+                              {isVIP && (
+                                <Badge className="bg-amber-100 text-amber-700 text-xs px-1.5 py-0 border-amber-200">
+                                  VIP
+                                </Badge>
+                              )}
+                            </div>
+                            <p className="text-xs text-zinc-500">
                               {formatDate(order.createdAt)}
                             </p>
                           </div>
@@ -357,7 +379,7 @@ export default function AllOrders() {
                         <Button
                           variant="ghost"
                           size="icon"
-                          className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10 shrink-0"
+                          className="h-8 w-8 text-zinc-400 hover:text-red-600 hover:bg-red-50 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity"
                           onClick={() => handleDeleteClick(order)}
                         >
                           <Trash2 className="h-4 w-4" />
@@ -365,23 +387,40 @@ export default function AllOrders() {
                       </div>
 
                       <div className="flex items-center gap-2 flex-wrap">
-                        <Badge variant="secondary" className="text-xs px-2 py-0.5">
-                          <Package className="w-3 h-3 mr-1" />
+                        <Badge variant="outline" className="text-xs border-zinc-200 bg-zinc-50 text-zinc-700">
                           {getTotalItems(order.items)} items
                         </Badge>
                         <Badge 
-                          variant={order.paymentType === "CARD" ? "default" : "outline"} 
-                          className="text-xs px-2 py-0.5"
+                          variant="outline"
+                          className={`text-xs border-zinc-200 ${
+                            order.paymentType === "CARD" 
+                              ? 'bg-zinc-100 text-zinc-700' 
+                              : 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                          }`}
                         >
-                          {getPaymentIcon(order.paymentType)}
-                          <span className="ml-1">{getPaymentLabel(order.paymentType)}</span>
+                          {order.paymentType === "CARD" ? <CreditCard className="w-3 h-3 mr-1" /> : <Banknote className="w-3 h-3 mr-1" />}
+                          {order.paymentType === "CARD" ? "Card" : "Cash"}
                         </Badge>
                         {order.Seating && (
-                          <Badge variant="outline" className="text-xs px-2 py-0.5">
+                          <Badge variant="outline" className="text-xs border-zinc-200 bg-zinc-50 text-zinc-600">
                             <MapPin className="w-3 h-3 mr-1" />
                             {order.Seating}
                           </Badge>
                         )}
+                      </div>
+
+                      {/* Status Badge */}
+                      <div className="pt-2">
+                        <Badge 
+                          variant="outline" 
+                          className={`text-xs font-medium ${
+                            isDelivered 
+                              ? 'bg-emerald-50 text-emerald-700 border-emerald-200' 
+                              : 'bg-amber-50 text-amber-700 border-amber-200'
+                          }`}
+                        >
+                          {isDelivered ? 'DELIVERED' : 'PENDING'}
+                        </Badge>
                       </div>
                     </CardHeader>
 
@@ -390,18 +429,18 @@ export default function AllOrders() {
                         {order.items.map((item) => (
                           <div
                             key={item.id}
-                            className="flex items-start justify-between gap-2 p-2.5 bg-muted/50 rounded-lg border border-border/50"
+                            className="flex items-start justify-between gap-2 p-2.5 bg-zinc-50 border border-zinc-200"
                           >
                             <div className="flex-1 min-w-0">
-                              <p className="text-sm font-medium text-foreground truncate">
+                              <p className="text-sm text-zinc-900 truncate">
                                 {item.product.name}
                               </p>
-                              <p className="text-xs text-muted-foreground mt-0.5">
+                              <p className="text-xs text-zinc-500 mt-0.5">
                                 ${item.product.price.toFixed(2)} × {item.quantity}
                               </p>
                             </div>
                             <div className="text-right shrink-0">
-                              <p className="text-sm font-semibold text-foreground">
+                              <p className="text-sm font-semibold text-zinc-900">
                                 ${(item.product.price * item.quantity).toFixed(2)}
                               </p>
                             </div>
@@ -409,48 +448,71 @@ export default function AllOrders() {
                         ))}
                       </div>
 
-                      <div className="pt-3 border-t border-border">
+                      <div className="pt-3 border-t border-zinc-200 space-y-3">
                         <div className="flex items-center justify-between">
-                          <span className="text-sm font-medium text-muted-foreground flex items-center gap-1.5">
-                            <DollarSign className="w-4 h-4" />
-                            Total
-                          </span>
-                          <span className="text-xl font-bold text-primary">
+                          <span className="text-sm text-zinc-500 uppercase tracking-wider">Total</span>
+                          <span className="text-xl font-bold text-zinc-900">
                             ${order.subtotal.toFixed(2)}
                           </span>
                         </div>
+                        
+                        <Button
+                          onClick={() => handleStatusToggle(order)}
+                          disabled={updatingStatus === order.id}
+                          className={`w-full font-medium transition-all ${
+                            isDelivered
+                              ? 'bg-emerald-600 hover:bg-emerald-700 text-white'
+                              : 'bg-amber-600 hover:bg-amber-700 text-white'
+                          }`}
+                        >
+                          {updatingStatus === order.id ? (
+                            <>
+                              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                              Updating
+                            </>
+                          ) : isDelivered ? (
+                            <>
+                              <CheckCircle2 className="w-4 h-4 mr-2" />
+                              Delivered
+                            </>
+                          ) : (
+                            'Mark Delivered'
+                          )}
+                        </Button>
                       </div>
                     </CardContent>
                   </Card>
-                ))}
+                )})}
               </div>
             </div>
           </ScrollArea>
         )}
       </div>
 
-      {/* Delete Confirmation Dialog */}
+      {/* Delete Dialog */}
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-        <AlertDialogContent>
+        <AlertDialogContent className="bg-white border-zinc-200">
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete Order</AlertDialogTitle>
-            <AlertDialogDescription>
+            <AlertDialogTitle className="text-zinc-900">Delete Order</AlertDialogTitle>
+            <AlertDialogDescription className="text-zinc-600">
               Are you sure you want to delete the order for{" "}
-              <span className="font-semibold">{orderToDelete?.customerName}</span>?
-              This will permanently remove the order and all its items. This action cannot be undone.
+              <span className="font-semibold text-zinc-900">{orderToDelete?.customerName}</span>?
+              This action cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel disabled={deleting}>Cancel</AlertDialogCancel>
+            <AlertDialogCancel disabled={deleting} className="bg-white border-zinc-300 hover:bg-zinc-100 text-zinc-900">
+              Cancel
+            </AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDeleteConfirm}
               disabled={deleting}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              className="bg-red-600 hover:bg-red-700 text-white"
             >
               {deleting ? (
                 <>
                   <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  Deleting...
+                  Deleting
                 </>
               ) : (
                 "Delete"

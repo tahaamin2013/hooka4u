@@ -1,29 +1,28 @@
 import { AppSidebar } from "@/components/sidebars/user-sidebar/app-sidebar";
-import {
-  SidebarInset,
-  SidebarProvider
-} from "@/components/ui/sidebar";
+import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import type { Metadata } from "next";
 import "../../globals.css";
+import { cookies } from "next/headers";
 
 export const metadata: Metadata = {
   title: "Hooka4u User Dashboard - Your Hookah, Your Way",
   description: "Hooka4u User Dashboard",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const cookieStore = await cookies();
+  const defaultOpen = cookieStore.get("sidebar_state")?.value === "false";
+
   return (
     <html lang="en">
       <body>
-        <SidebarProvider className="bg-blue-400">
+        <SidebarProvider defaultOpen={defaultOpen} className="bg-blue-400">
           <AppSidebar />
-          <SidebarInset>
-            {children}
-          </SidebarInset>
+          <SidebarInset>{children}</SidebarInset>
         </SidebarProvider>
       </body>
     </html>

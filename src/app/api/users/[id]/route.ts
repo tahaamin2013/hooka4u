@@ -1,17 +1,18 @@
 // app/api/users/[id]/route.ts
 
-import { NextRequest, NextResponse } from "next/server";
 import { PrismaClient } from "@prisma/client";
+import { NextRequest, NextResponse } from "next/server";
 
 const prisma = new PrismaClient();
 
 // DELETE - Delete a user
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id } = params;
+    // Await the params object
+    const { id } = await params;
 
     // Check if user exists
     const user = await prisma.user.findUnique({
