@@ -51,6 +51,7 @@ const sidebarData = {
       requiresAdmin: true, // Add this flag
       items: [
         { title: "Menu", url: "/user-dashboard/menu" },
+        { title: "Users Management", url: "/user-dashboard/users-management" },
       ],
     }
   ],
