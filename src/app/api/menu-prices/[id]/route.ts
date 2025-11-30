@@ -1,5 +1,4 @@
-
-// app/api/menu-items/[id]/route.ts
+// app/api/menu-prices/[id]/route.ts
 import { NextRequest, NextResponse } from "next/server";
 import { PrismaClient } from "@prisma/client";
 
@@ -36,7 +35,7 @@ export async function GET(
   }
 }
 
-// PUT update menu item (price only)
+// PUT update menu item (price and availability)
 export async function PUT(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -44,12 +43,20 @@ export async function PUT(
   try {
     const { id } = await params;
     const body = await request.json();
-    const { price } = body;
+    const { price, available } = body;
 
     // Validate price
     if (typeof price !== "number" || price < 0) {
       return NextResponse.json(
         { error: "Invalid price. Price must be a number greater than or equal to 0." },
+        { status: 400 }
+      );
+    }
+
+    // Validate available
+    if (typeof available !== "boolean") {
+      return NextResponse.json(
+        { error: "Invalid availability. Available must be a boolean value." },
         { status: 400 }
       );
     }
@@ -68,13 +75,14 @@ export async function PUT(
       );
     }
 
-    // Update only the price
+    // Update price and availability
     const updatedMenuItem = await prisma.menuItems.update({
       where: {
         id: id,
       },
       data: {
         price: price,
+        available: available,
         updatedAt: new Date(),
       },
     });

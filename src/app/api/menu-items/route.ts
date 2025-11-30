@@ -1,9 +1,12 @@
 import { NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma"; // Adjust import path
+import { prisma } from "@/lib/prisma";
 
 export async function GET() {
   try {
     const menuItems = await prisma.menuItems.findMany({
+      where: {
+        available: true
+      },
       orderBy: { createdAt: 'desc' }
     });
     return NextResponse.json(menuItems);

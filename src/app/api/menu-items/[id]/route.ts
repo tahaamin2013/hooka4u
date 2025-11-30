@@ -10,13 +10,14 @@ export async function PUT(
   try {
     const { id } = await params; // Need to await params in Next.js 15
     const body = await request.json();
-    const { name, description } = body;
+    const { name, description, available } = body;
 
     const menuItem = await prisma.menuItems.update({
       where: { id },
       data: {
         name,
         description,
+        available,
         price: 0, // Keep at 0 when updating
       },
     });
