@@ -38,7 +38,7 @@ interface CartState {
 
 export default function NewOrder() {
   const [customerName, setCustomerName] = useState("");
-  const [paymentType, setPaymentType] = useState<"CASH" | "CARD">("CASH");
+  const [paymentType, setPaymentType] = useState<"CASH" | "CARD" | "">("");
   const [seating, setSeating] = useState("");
   const [cart, setCart] = useState<CartState>({});
   const [products, setProducts] = useState<Product[]>([]);

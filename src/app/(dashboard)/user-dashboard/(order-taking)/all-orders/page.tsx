@@ -473,7 +473,7 @@ export default function AllOrders() {
                           {order.Seating && (
                             <Badge
                               variant="outline"
-                              className="text-xs border-border bg-muted text-muted-foreground"
+                              className="text-md border-border bg-muted text-muted-foreground"
                             >
                               <MapPin className="w-3 h-3 mr-1" />
                               {order.Seating}
