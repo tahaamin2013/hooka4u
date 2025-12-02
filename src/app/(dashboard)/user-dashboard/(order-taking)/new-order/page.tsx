@@ -148,11 +148,21 @@ export default function NewOrder() {
   const handleBackToCart = () => {
     setShowOrderForm(false);
   };
-
-  const handleConfirmOrder = async () => {
+const handleConfirmOrder = async () => {
     if (!customerName.trim()) {
       toast.info("Customer name is required", {
         description: "Please enter a customer name before placing the order.",
+        action: {
+          label: "Close",
+          onClick: () => console.log("Toast Closed"),
+        },
+      });
+      return;
+    }
+
+    if (!paymentType) {
+      toast.info("Payment type is required", {
+        description: "Please select a payment type before placing the order.",
         action: {
           label: "Close",
           onClick: () => console.log("Toast Closed"),

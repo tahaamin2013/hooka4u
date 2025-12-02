@@ -299,11 +299,11 @@ export default function AllOrders() {
     <div className="flex flex-col h-screen bg-black">
       {/* Header */}
       <header className="flex h-14 shrink-0 items-center gap-3 bg-card border-b border-border">
-        <div className="flex items-center gap-3 px-5 w-full justify-between">
-          <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 md:gap-3 px-3 md:px-5 w-full justify-between">
+          <div className="flex items-center gap-2 md:gap-3 min-w-0">
             <SidebarTrigger className="hidden sm:flex -ml-1 text-muted-foreground hover:text-foreground" />
-            <Separator orientation="vertical" className="h-4 bg-border" />
-            <Breadcrumb>
+            <Separator orientation="vertical" className="h-4 bg-border hidden sm:block" />
+            <Breadcrumb className="min-w-0">
               <BreadcrumbList>
                 <BreadcrumbItem className="hidden md:block">
                   <BreadcrumbLink
@@ -315,7 +315,7 @@ export default function AllOrders() {
                 </BreadcrumbItem>
                 <BreadcrumbSeparator className="hidden md:block text-muted-foreground" />
                 <BreadcrumbItem>
-                  <BreadcrumbPage className="text-foreground text-sm font-medium">
+                  <BreadcrumbPage className="text-foreground text-sm font-medium truncate">
                     All Orders
                   </BreadcrumbPage>
                 </BreadcrumbItem>
@@ -326,8 +326,9 @@ export default function AllOrders() {
           <div className="flex items-center gap-3">
             <div className="flex items-center gap-2 text-xs text-muted-foreground">
               <div className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-              <Clock className="w-3.5 h-3.5" />
-              <span>Updated {getTimeSinceLastFetch()}</span>
+              <Clock className="w-3.5 h-3.5 hidden sm:block" />
+              <span className="hidden sm:inline">Updated {getTimeSinceLastFetch()}</span>
+              <span className="sm:hidden">{getTimeSinceLastFetch()}</span>
             </div>
           </div>
         </div>
@@ -340,7 +341,7 @@ export default function AllOrders() {
             <p className="text-muted-foreground text-sm">Loading orders</p>
           </div>
         ) : error ? (
-          <div className="flex flex-col items-center justify-center h-full">
+          <div className="flex flex-col items-center justify-center h-full px-4">
             <AlertCircle className="w-10 h-10 text-destructive mb-3" />
             <div className="text-destructive text-sm font-medium mb-1">
               Error loading orders
@@ -364,10 +365,10 @@ export default function AllOrders() {
           </div>
         ) : (
           <ScrollArea className="h-full">
-            <div className="p-6">
+            <div className="p-3 md:p-6">
               {/* Stats */}
-              <div className="flex gap-3 mb-6">
-                <div className="w-32 bg-card border border-border p-3 rounded-lg">
+              <div className="grid grid-cols-2 md:flex md:gap-3 gap-2 mb-4 md:mb-6">
+                <div className="md:w-32 bg-card border border-border p-3 rounded-lg">
                   <div className="text-xs text-muted-foreground uppercase tracking-wider mb-1">
                     Total
                   </div>
@@ -375,7 +376,7 @@ export default function AllOrders() {
                     {orders.length}
                   </div>
                 </div>
-                <div className="w-32 bg-card border border-border p-3 rounded-lg">
+                <div className="md:w-32 bg-card border border-border p-3 rounded-lg">
                   <div className="text-xs text-muted-foreground uppercase tracking-wider mb-1">
                     Pending
                   </div>
@@ -383,7 +384,7 @@ export default function AllOrders() {
                     {pendingOrders.length}
                   </div>
                 </div>
-                <div className="w-32 bg-card border border-border p-3 rounded-lg">
+                <div className="md:w-32 bg-card border border-border p-3 rounded-lg">
                   <div className="text-xs text-muted-foreground uppercase tracking-wider mb-1">
                     Delivered
                   </div>
@@ -391,7 +392,7 @@ export default function AllOrders() {
                     {deliveredOrders.length}
                   </div>
                 </div>
-                <div className="w-32 bg-card border border-border p-3 rounded-lg">
+                <div className="md:w-32 bg-card border border-border p-3 rounded-lg">
                   <div className="text-xs text-muted-foreground uppercase tracking-wider mb-1">
                     Total Sales
                   </div>
@@ -402,7 +403,7 @@ export default function AllOrders() {
               </div>
 
               {/* Orders Grid */}
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 md:gap-4">
                 {orders.map((order) => {
                   const isDelivered = order.status === "DELIVERED";
                   const isVIP = order.Seating?.toUpperCase().includes("VIP");
@@ -441,7 +442,7 @@ export default function AllOrders() {
                           <Button
                             variant="ghost"
                             size="icon"
-                            className="h-8 w-8 text-muted-foreground hover:text-destructive hover:bg-destructive/10 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                            className="h-8 w-8 text-muted-foreground hover:text-destructive hover:bg-destructive/10 shrink-0 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity"
                             onClick={() => handleDeleteClick(order)}
                           >
                             <Trash2 className="h-4 w-4" />
@@ -570,7 +571,7 @@ export default function AllOrders() {
 
       {/* Delete Dialog */}
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-        <AlertDialogContent className="bg-card border-border">
+        <AlertDialogContent className="bg-card border-border w-[calc(100%-2rem)] max-w-lg">
           <AlertDialogHeader>
             <AlertDialogTitle className="text-foreground">
               Delete Order
@@ -583,17 +584,17 @@ export default function AllOrders() {
               ? This action cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
-          <AlertDialogFooter>
+          <AlertDialogFooter className="flex-col sm:flex-row gap-2">
             <AlertDialogCancel
               disabled={deleting}
-              className="bg-muted border-border hover:bg-accent text-foreground"
+              className="bg-muted border-border hover:bg-accent text-foreground mt-0"
             >
               Cancel
             </AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDeleteConfirm}
               disabled={deleting}
-              className="bg-destructive hover:bg-destructive/90 text-destructive-foreground"
+              className="bg-destructive hover:bg-destructive/90 text-destructive-foreground mt-0"
             >
               {deleting ? (
                 <>
