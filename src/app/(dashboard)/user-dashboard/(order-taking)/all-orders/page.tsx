@@ -300,7 +300,7 @@ export default function AllOrders() {
       <header className="flex h-14 shrink-0 items-center gap-3 bg-card border-b border-border">
         <div className="flex items-center gap-3 px-5 w-full justify-between">
           <div className="flex items-center gap-3">
-            <SidebarTrigger className="-ml-1 text-muted-foreground hover:text-foreground" />
+            <SidebarTrigger className="hidden sm:flex -ml-1 text-muted-foreground hover:text-foreground" />
             <Separator orientation="vertical" className="h-4 bg-border" />
             <Breadcrumb>
               <BreadcrumbList>

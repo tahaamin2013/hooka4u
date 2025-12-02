@@ -1,12 +1,7 @@
 "use client"
 
-import * as React from "react"
-
-import {
-  SidebarMenu,
-  SidebarMenuButton,
-  SidebarMenuItem,
-} from "@/components/ui/sidebar"
+import type * as React from "react"
+import { SidebarMenu, SidebarMenuButton, SidebarMenuItem } from "@/components/ui/sidebar"
 
 export function TeamSwitcher({
   team,
@@ -20,10 +15,7 @@ export function TeamSwitcher({
   return (
     <SidebarMenu>
       <SidebarMenuItem>
-        <SidebarMenuButton
-          size="lg"
-          className="cursor-default"
-        >
+        <SidebarMenuButton size="lg" className="cursor-default">
           <div className="bg-sidebar-primary text-sidebar-primary-foreground flex aspect-square size-8 items-center justify-center rounded-lg">
             <team.logo className="size-4" />
           </div>

@@ -167,7 +167,7 @@ export default function UserManagement() {
     <div className="flex flex-col h-screen bg-background">
       <header className="flex h-14 shrink-0 items-center gap-3 bg-card border-b border-border">
         <div className="flex items-center gap-3 px-3 sm:px-5 w-full">
-          <SidebarTrigger className="-ml-1" />
+          <SidebarTrigger className="-ml-1 hidden sm:flex" />
           <Separator orientation="vertical" className="h-4" />
           <Breadcrumb>
             <BreadcrumbList>
@@ -273,7 +273,7 @@ export default function UserManagement() {
         </div>
 
         {/* Mobile Add User Button */}
-        <div className="fixed bottom-0 left-0 right-0 md:hidden bg-white border-t border-border p-4 shadow-lg">
+        <div className="fixed bottom-14 left-0 right-0 md:hidden bg-white border-t border-border p-4">
           <Button
             className="w-full bg-primary hover:bg-primary/90 text-primary-foreground h-12 text-base font-semibold rounded-lg"
             onClick={() => setIsFormOpen(true)}

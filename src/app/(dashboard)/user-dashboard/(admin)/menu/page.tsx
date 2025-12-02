@@ -208,7 +208,7 @@ export default function MenuItemsPage() {
       {/* Header */}
       <header className="flex h-14 shrink-0 items-center gap-3 bg-card border-b border-border">
         <div className="flex items-center gap-3 px-3 sm:px-5 w-full">
-          <SidebarTrigger className="-ml-1" />
+          <SidebarTrigger className="-ml-1 hidden sm:flex" />
           <Separator orientation="vertical" className="h-4" />
           <Breadcrumb>
             <BreadcrumbList>
