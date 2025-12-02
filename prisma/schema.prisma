@@ -48,7 +48,7 @@ model Order {
   paymentType  String?     @default("CASH")
   Seating      String
   subtotal     Float
-  status       String      @default("PENDING") // Add this line
+  status       String      @default("PENDING")
   createdAt    DateTime    @default(now())
   updatedAt    DateTime    @updatedAt
   items        OrderItem[]

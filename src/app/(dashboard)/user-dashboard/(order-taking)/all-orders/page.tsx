@@ -294,6 +294,7 @@ export default function AllOrders() {
     (o) => !o.status || o.status === "PENDING"
   );
   const deliveredOrders = orders.filter((o) => o.status === "DELIVERED");
+  
   return (
     <div className="flex flex-col h-screen bg-black">
       {/* Header */}
@@ -365,29 +366,37 @@ export default function AllOrders() {
           <ScrollArea className="h-full">
             <div className="p-6">
               {/* Stats */}
-              <div className="grid grid-cols-3 gap-4 mb-6">
-                <div className="bg-card border border-border p-5 rounded-lg">
-                  <div className="text-xs text-muted-foreground uppercase tracking-wider mb-2">
+              <div className="flex gap-3 mb-6">
+                <div className="w-32 bg-card border border-border p-3 rounded-lg">
+                  <div className="text-xs text-muted-foreground uppercase tracking-wider mb-1">
                     Total
                   </div>
-                  <div className="text-3xl font-bold text-foreground">
+                  <div className="text-2xl font-bold text-foreground">
                     {orders.length}
                   </div>
                 </div>
-                <div className="bg-card border border-border p-5 rounded-lg">
-                  <div className="text-xs text-muted-foreground uppercase tracking-wider mb-2">
+                <div className="w-32 bg-card border border-border p-3 rounded-lg">
+                  <div className="text-xs text-muted-foreground uppercase tracking-wider mb-1">
                     Pending
                   </div>
-                  <div className="text-3xl font-bold text-amber-500 dark:text-amber-400">
+                  <div className="text-2xl font-bold text-amber-500 dark:text-amber-400">
                     {pendingOrders.length}
                   </div>
                 </div>
-                <div className="bg-card border border-border p-5 rounded-lg">
-                  <div className="text-xs text-muted-foreground uppercase tracking-wider mb-2">
+                <div className="w-32 bg-card border border-border p-3 rounded-lg">
+                  <div className="text-xs text-muted-foreground uppercase tracking-wider mb-1">
                     Delivered
                   </div>
-                  <div className="text-3xl font-bold text-emerald-500 dark:text-emerald-400">
+                  <div className="text-2xl font-bold text-emerald-500 dark:text-emerald-400">
                     {deliveredOrders.length}
+                  </div>
+                </div>
+                <div className="w-32 bg-card border border-border p-3 rounded-lg">
+                  <div className="text-xs text-muted-foreground uppercase tracking-wider mb-1">
+                    Total Sales
+                  </div>
+                  <div className="text-2xl font-bold text-blue-500 dark:text-blue-400">
+                    ${orders.reduce((sum, order) => sum + order.subtotal, 0).toFixed(2)}
                   </div>
                 </div>
               </div>
