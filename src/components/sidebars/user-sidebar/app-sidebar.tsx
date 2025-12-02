@@ -25,7 +25,7 @@ import ThemeButton from "@/components/ThemeButton"
 // Sidebar static data
 const sidebarData = {
   teams: {
-    name: "Hooka4u",
+    name: "VIPService4U",
     logo: GalleryVerticalEnd,
     plan: "Enterprise",
   },

@@ -6,8 +6,8 @@ import { cookies } from "next/headers";
 import ThemeContextProvider from "@/components/ThemeContext";
 
 export const metadata: Metadata = {
-  title: "Hooka4u User Dashboard - Your Hookah, Your Way",
-  description: "Hooka4u User Dashboard",
+  title: "VIPService4U User Dashboard - Your Hookah, Your Way",
+  description: "VIPService4U User Dashboard",
 };
 
 export default async function RootLayout({
