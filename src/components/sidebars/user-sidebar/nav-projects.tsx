@@ -1,74 +1,46 @@
 "use client"
 
-import { useState } from "react"
 import { QrCode } from "lucide-react"
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog"
-import {
   SidebarGroup,
-  SidebarMenu,
-  SidebarMenuButton,
-  SidebarMenuItem,
+  SidebarGroupLabel,
 } from "@/components/ui/sidebar"
+import Link from "next/link"
 
 export function HomepageQR() {
-  const [qrDialogOpen, setQrDialogOpen] = useState(false)
-
   const getHomepageUrl = () => {
-    return window.location.origin
+    if (typeof window !== 'undefined') {
+      return window.location.origin
+    }
+    return ''
   }
 
   const getQRCodeUrl = () => {
     const homepageUrl = getHomepageUrl()
-    return `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(homepageUrl)}&bgcolor=ffffff&color=000000&qzone=1&format=svg`
+    return `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(homepageUrl)}&bgcolor=ffffff&color=000000&qzone=1&format=svg`
   }
 
   return (
-    <>
-      <SidebarGroup className="group-data-[collapsible=icon]:hidden">
-        <SidebarMenu>
-          <SidebarMenuItem>
-            <SidebarMenuButton onClick={() => setQrDialogOpen(true)}>
-              <QrCode />
-              <span>QR Code for Ordering Online</span>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-        </SidebarMenu>
-      </SidebarGroup>
-
-      <Dialog open={qrDialogOpen} onOpenChange={setQrDialogOpen}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <QrCode className="h-5 w-5" />
-              QR Code for Ordering Online (Guest)
-            </DialogTitle>
-            <DialogDescription>
-              Scan this QR code to visit the homepage on your mobile device
-            </DialogDescription>
-          </DialogHeader>
-          <div className="flex flex-col items-center gap-4 py-4">
-            <div className="rounded-lg border-2 border-border bg-white p-4 shadow-lg">
-              <img
-              draggable="false"
-                src={getQRCodeUrl()}
-                alt="QR code for homepage"
-                className="h-64 w-64"
-              />
-            </div>
-            <div className="w-full rounded-md bg-muted px-3 py-2 text-center">
-              <code className="text-xs text-muted-foreground break-all">
-                {getHomepageUrl()}
-              </code>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
-    </>
+    <SidebarGroup className="group-data-[collapsible=icon]:hidden mt-auto">
+      <SidebarGroupLabel className="flex items-center justify-center gap-2 text-xs text-muted-foreground">
+        <QrCode className="h-3.5 w-3.5" />
+        QR Code for Ordering Online
+      </SidebarGroupLabel>
+      <div className="flex flex-col items-center gap-3 px-2 py-3">
+        <div className="rounded-lg border-2 border-border bg-white p-3 shadow-sm">
+          <img
+            draggable="false"
+            src={getQRCodeUrl()}
+            alt="QR code for ordering online"
+            className="h-40 w-40"
+          />
+        </div>
+        <Link href={getHomepageUrl()} className="w-full hover:underline rounded-md bg-muted px-2 py-1.5 text-center">
+          <code className="text-[10px] text-muted-foreground break-all">
+            {getHomepageUrl()}
+          </code>
+        </Link>
+      </div>
+    </SidebarGroup>
   )
 }

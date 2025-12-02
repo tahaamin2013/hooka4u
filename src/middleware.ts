@@ -15,7 +15,7 @@ export async function middleware(req: NextRequest) {
   // --------------------------
   if (token) {
     // Redirect logged-in user if they try to access login or home
-    if (pathname === "/" || pathname === "/login") {
+    if (pathname === "/login") {
       const redirectTo = "/user-dashboard";
       return NextResponse.redirect(new URL(redirectTo, req.url));
     }
@@ -38,7 +38,6 @@ export async function middleware(req: NextRequest) {
 
 export const config = {
   matcher: [
-    "/", 
     "/login", 
     "/register", 
     "/admin-dashboard/:path*", 
