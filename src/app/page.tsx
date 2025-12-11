@@ -42,7 +42,7 @@ export default function Home() {
       <HeroSection />
           <LargeTestimonial />
    <div className="flex justify-between">
-      <Image src="/leaf.png" width={400} height={400} alt="Testimonial Background"  className="w-60  hidden md:block h-auto object-cover" />
+      <Image src="/coal1.png" width={400} height={400} alt="Testimonial Background"  className="w-60  hidden md:block h-auto object-cover" />
 
          <AboutSection />
 <div></div>
@@ -51,7 +51,7 @@ export default function Home() {
       <div className="flex  justify-between">
 <div></div>
         <RestaurantSection />
-        <Image src="/leaf.png" width={400} height={400}  alt="Testimonial Background"  className="w-60  rotate-180 hidden md:block h-auto object-cover" />
+        <Image src="/coal.png" width={400} height={400}  alt="Testimonial Background"  className="w-60  hidden md:block h-auto object-cover" />
    </div>
 
 
@@ -59,7 +59,7 @@ export default function Home() {
         <Gallery />
 
 
-        <Image src="/coal.png" width={400} height={400}  alt="Testimonial Background"  className="w-60  right-0 absolute  hidden md:block h-auto object-cover" />
+        <Image src="/leaf.png" width={400} height={400}  alt="Testimonial Background"  className="w-60  right-0 absolute  hidden md:block h-auto object-cover" />
   <section className="py-16">
         <div className="text-center mb-16">
           <h3 className="text-lime-500 font-script text-xl mb-4">Our Flavors</h3>
@@ -78,9 +78,13 @@ export default function Home() {
         <Menu />
 
 </SidebarProvider>
-     <div className="py-12">
-         <Testimonials />
-     </div>
+    
+          <div className="flex py-10 gap-7  justify-between">
+        <Image src="/leaf.png" width={400} height={400}  alt="Testimonial Background"  className="w-30  hidden md:block h-auto object-cover" />
+             <Testimonials />
+
+        <Image src="/leaf.png" width={400} height={400}  alt="Testimonial Background"  className="w-30 rotate-180  hidden md:block h-auto object-cover" />
+   </div>
        
       <Footer />
   

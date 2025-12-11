@@ -108,9 +108,7 @@ const Menu = () => {
     // Open the cart sheet when item is added
     setIsCartOpen(true);
     
-    toast.success("Added to cart", {
-      description: `${product.name} has been added to your order.`,
-    });
+ 
   };
 
   const updateQuantity = (productId: string, change: number) => {
